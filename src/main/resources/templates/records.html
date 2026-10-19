@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Records | EcoSmart</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+
+<body>
+
+<nav class="navbar">
+    <a class="nav-brand" th:href="@{/}">EcoSmart</a>
+
+    <div class="nav-links">
+        <a th:href="@{/}">Dashboard</a>
+        <a th:href="@{/smart-bins}">Smart Bins</a>
+        <a th:href="@{/records}" class="active">Waste Records</a>
+    </div>
+</nav>
+
+<main class="container">
+
+    <div class="page-heading">
+        <div>
+            <h1>Waste Records</h1>
+            <p>Search, filter and manage registered waste records.</p>
+        </div>
+
+        <a th:href="@{/add}" class="btn btn-primary">
+            + Add Waste Record
+        </a>
+    </div>
+
+    <section class="panel">
+
+        <div class="section-title">
+            <div>
+                <h2>All Registered Waste</h2>
+                <p>View and manage your waste collection records.</p>
+            </div>
+
+            <span class="record-count">
+                Total: <strong th:text="${records.size()}">0</strong>
+            </span>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="records-filters">
+
+            <div class="filter-field search-field">
+                <label for="recordSearch">Search Records</label>
+                <input
+                    type="text"
+                    id="recordSearch"
+                    placeholder="Search by ID, category or location..."
+                    autocomplete="off">
+            </div>
+
+            <div class="filter-field">
+                <label for="categoryFilter">Filter by Category</label>
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label for="locationFilter">Filter by Location</label>
+                <select id="locationFilter">
+                    <option value="">All Locations</option>
+                </select>
+            </div>
+
+            <div class="filter-field reset-field">
+                <label>&nbsp;</label>
+                <button type="button" id="resetFilters"
+                        class="btn btn-secondary">
+                    Reset Filters
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Export Toolbar -->
+        <div class="records-toolbar">
+            <p class="filter-summary">
+                Showing <strong id="visibleCount">0</strong> records
+            </p>
+
+            <button type="button" id="exportCsv" class="btn btn-export">
+                &#8595; Export CSV
+            </button>
+        </div>
+
+        <!-- Waste Records Table -->
+        <div class="table-wrap">
+
+            <table id="recordsTable">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Location</th>
+                        <th>Registered Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="recordsTableBody">
+
+                    <tr class="record-row"
+                        th:each="record : ${records}">
+
+                        <td class="id-cell"
+                            th:text="${record.id}">1</td>
+
+                        <td class="category-cell"
+                            th:text="${record.category}">Plastic</td>
+
+                        <td class="quantity-cell"
+                            th:text="${record.quantity}">2.50</td>
+
+                        <td class="location-cell"
+                            th:text="${record.location}">Kalmunai</td>
+
+                        <td class="date-cell"
+                            th:text="${record.registeredAt != null ? #temporals.format(record.registeredAt, 'yyyy-MM-dd HH:mm') : 'N/A'}">
+                            2026-10-18 13:44
+                        </td>
+
+                        <td>
+                            <div class="action-buttons">
+
+                                <a th:href="@{/edit/{id}(id=${record.id})}"
+                                   class="btn btn-small btn-edit">
+                                    Edit
+                                </a>
+
+                                <form th:action="@{/delete/{id}(id=${record.id})}"
+                                      method="post"
+                                      class="delete-form"
+                                      onsubmit="return confirm('Are you sure you want to delete this record?');">
+
+                                    <button type="submit"
+                                            class="btn btn-small btn-delete">
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </div>
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- No Records Message -->
+        <div id="noResults" class="no-results" hidden>
+            <h3>No records found</h3>
+            <p>Try another search or reset the filters.</p>
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchInput = document.getElementById("recordSearch");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const locationFilter = document.getElementById("locationFilter");
+    const resetButton = document.getElementById("resetFilters");
+    const exportButton = document.getElementById("exportCsv");
+    const visibleCount = document.getElementById("visibleCount");
+    const noResults = document.getElementById("noResults");
+
+    const rows = Array.from(
+        document.querySelectorAll("#recordsTableBody .record-row")
+    );
+
+    // Populate category and location filters from table data.
+    function populateFilter(selectElement, cellClass) {
+        const values = new Set();
+
+        rows.forEach(function (row) {
+            const cell = row.querySelector("." + cellClass);
+
+            if (cell && cell.textContent.trim()) {
+                values.add(cell.textContent.trim());
+            }
+        });
+
+        Array.from(values)
+            .sort((a, b) => a.localeCompare(b))
+            .forEach(function (value) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = value;
+                selectElement.appendChild(option);
+            });
+    }
+
+    populateFilter(categoryFilter, "category-cell");
+    populateFilter(locationFilter, "location-cell");
+
+    // Search and filter records.
+    function filterRecords() {
+        const searchText = searchInput.value.trim().toLowerCase();
+        const selectedCategory = categoryFilter.value.toLowerCase();
+        const selectedLocation = locationFilter.value.toLowerCase();
+
+        let count = 0;
+
+        rows.forEach(function (row) {
+            const id = row.querySelector(".id-cell").textContent.toLowerCase();
+            const category = row.querySelector(".category-cell").textContent.trim().toLowerCase();
+            const quantity = row.querySelector(".quantity-cell").textContent.toLowerCase();
+            const location = row.querySelector(".location-cell").textContent.trim().toLowerCase();
+            const date = row.querySelector(".date-cell").textContent.toLowerCase();
+
+            const matchesSearch =
+                id.includes(searchText) ||
+                category.includes(searchText) ||
+                quantity.includes(searchText) ||
+                location.includes(searchText) ||
+                date.includes(searchText);
+
+            const matchesCategory =
+                selectedCategory === "" || category === selectedCategory;
+
+            const matchesLocation =
+                selectedLocation === "" || location === selectedLocation;
+
+            const visible =
+                matchesSearch && matchesCategory && matchesLocation;
+
+            row.style.display = visible ? "" : "none";
+
+            if (visible) {
+                count++;
+            }
+        });
+
+        visibleCount.textContent = count;
+        noResults.hidden = count !== 0;
+    }
+
+    searchInput.addEventListener("input", filterRecords);
+    categoryFilter.addEventListener("change", filterRecords);
+    locationFilter.addEventListener("change", filterRecords);
+
+    // Reset all filters.
+    resetButton.addEventListener("click", function () {
+        searchInput.value = "";
+        categoryFilter.value = "";
+        locationFilter.value = "";
+        filterRecords();
+    });
+
+    // Escape CSV values safely.
+    function escapeCsv(value) {
+        let text = String(value ?? "");
+
+        // Prevent spreadsheet formula injection.
+        if (/^[\s]*[=+\-@]/.test(text)) {
+            text = "'" + text;
+        }
+
+        return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    // Export currently visible records to CSV.
+    exportButton.addEventListener("click", function () {
+
+        const visibleRows = rows.filter(function (row) {
+            return row.style.display !== "none";
+        });
+
+        if (visibleRows.length === 0) {
+            alert("There are no records to export.");
+            return;
+        }
+
+        const headers = [
+            "ID",
+            "Category",
+            "Quantity",
+            "Location",
+            "Registered Date"
+        ];
+
+        const csvRows = [headers.map(escapeCsv).join(",")];
+
+        visibleRows.forEach(function (row) {
+            const values = [
+                row.querySelector(".id-cell").textContent.trim(),
+                row.querySelector(".category-cell").textContent.trim(),
+                row.querySelector(".quantity-cell").textContent.trim(),
+                row.querySelector(".location-cell").textContent.trim(),
+                row.querySelector(".date-cell").textContent.trim()
+            ];
+
+            csvRows.push(values.map(escapeCsv).join(","));
+        });
+
+        // UTF-8 BOM supports special characters in spreadsheet programs.
+        const csvContent = "\uFEFF" + csvRows.join("\r\n");
+
+        const blob = new Blob(
+            [csvContent],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "EcoSmart_Waste_Records.csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(function () {
+            URL.revokeObjectURL(url);
+        }, 1000);
+    });
+
+    // Set initial record count.
+    filterRecords();
+
+});
+</script>
+
+</body>
+</html>

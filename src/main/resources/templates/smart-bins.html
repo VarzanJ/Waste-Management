@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSmart | Smart Bin Monitoring</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<header class="navbar">
+    <a class="brand" th:href="@{/}">🌿 EcoSmart</a>
+    <nav>
+        <a th:href="@{/}">Register Waste</a>
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a th:href="@{/records}">Waste Records</a>
+        <a class="active" th:href="@{/smart-bins}">Smart Bins</a>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="page-heading">
+        <p class="eyebrow">SMART MONITORING</p>
+        <h1>Smart Bin Monitoring</h1>
+        <p class="muted">Register bins and monitor their fill levels.</p>
+    </section>
+
+    <!-- Register Smart Bin -->
+    <section class="panel">
+        <h2>Register a Smart Bin</h2>
+
+        <p th:if="${message}" th:text="${message}"></p>
+        <p th:if="${error}" th:text="${error}"></p>
+
+        <form th:action="@{/smart-bins/save}" method="post">
+
+            <label for="binName">Bin Name</label>
+            <input type="text"
+                   id="binName"
+                   name="binName"
+                   placeholder="Example: Bin 01"
+                   required>
+
+            <label for="location">Location</label>
+            <input type="text"
+                   id="location"
+                   name="location"
+                   placeholder="Example: College Canteen"
+                   required>
+
+            <label for="fillPercentage">Fill Percentage (0–100)</label>
+            <input type="number"
+                   id="fillPercentage"
+                   name="fillPercentage"
+                   min="0"
+                   max="100"
+                   step="1"
+                   placeholder="Example: 85"
+                   required>
+
+            <button type="submit" class="btn">Save Smart Bin</button>
+        </form>
+    </section>
+
+    <!-- Registered Smart Bins -->
+    <section class="panel">
+        <div class="section-title">
+            <div>
+                <h2>Registered Smart Bins</h2>
+                <p class="muted">Bin information saved in the database.</p>
+            </div>
+        </div>
+
+        <div class="table-wrap" th:if="${!#lists.isEmpty(bins)}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Bin Name</th>
+                        <th>Location</th>
+                        <th>Fill Level</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr th:each="bin : ${bins}">
+                        <td th:text="${bin.id}"></td>
+                        <td th:text="${bin.binName}"></td>
+                        <td th:text="${bin.location}"></td>
+
+                        <!-- Fill Percentage and Progress Bar -->
+                        <td>
+                            <div class="bin-fill-info">
+                                <strong th:text="${bin.fillPercentage + '%'}">0%</strong>
+
+                                <div class="bin-progress"
+                                     role="progressbar"
+                                     aria-label="Bin fill level"
+                                     th:attr="aria-valuenow=${bin.fillPercentage},
+                                              aria-valuemin=0,
+                                              aria-valuemax=100">
+
+                                    <div class="bin-progress-bar"
+                                         th:classappend="${bin.fillPercentage > 70} ? ' progress-high' : (${bin.fillPercentage > 30} ? ' progress-medium' : ' progress-low')"
+                                         th:style="'width: ' + ${bin.fillPercentage} + '%'">
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Status and Warning Indicators -->
+                        <td>
+                            <span th:if="${bin.fillPercentage > 70}"
+                                  class="bin-status status-high">
+                                ⚠️ FULL — Collect Waste
+                            </span>
+
+                            <span th:if="${bin.fillPercentage > 30 and bin.fillPercentage <= 70}"
+                                  class="bin-status status-medium">
+                                🟡 HALF FULL
+                            </span>
+
+                            <span th:if="${bin.fillPercentage <= 30}"
+                                  class="bin-status status-low">
+                                🟢 LOW — Capacity Available
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p th:if="${#lists.isEmpty(bins)}" class="muted">
+            No smart bins registered yet. Add your first bin above.
+        </p>
+    </section>
+
+</main>
+
+</body>
+</html>

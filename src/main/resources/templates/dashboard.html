@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSmart Dashboard</title>
+
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<script th:src="@{/chart.umd.min.js}"></script>
+
+<script>
+    window.addEventListener("load", function () {
+        console.log("Chart.js loaded:", typeof window.Chart);
+
+        if (typeof window.Chart === "undefined") {
+            console.error("Chart.js is not available on window.");
+        } else {
+            console.log("Chart.js version:", window.Chart.version);
+        }
+    });
+</script>
+<body>
+
+<header class="navbar">
+    <a th:href="@{/}" class="logo">🌿 EcoSmart</a>
+
+    <nav>
+        <a th:href="@{/}">Register Waste</a>
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a th:href="@{/records}">Waste Records</a>
+        <a th:href="@{/smart-bins}">Smart Bins</a>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="page-heading">
+        <p class="eyebrow">OVERVIEW</p>
+        <h1>EcoSmart Dashboard</h1>
+        <p>Monitor waste collection and smart bin status.</p>
+    </section>
+
+    <!-- Waste Statistics -->
+    <section class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <p>Total Records</p>
+            <h2 th:text="${totalRecords}">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">⚖️</div>
+            <p>Total Waste (kg)</p>
+            <h2 th:text="${#numbers.formatDecimal(totalQuantity, 1, 2)}">
+                0.00
+            </h2>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">♻️</div>
+            <p>Waste Categories</p>
+            <h2 th:text="${categoryCount}">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📍</div>
+            <p>Collection Locations</p>
+            <h2 th:text="${locationCount}">0</h2>
+        </div>
+
+    </section>
+
+    <!-- Smart Bin Statistics -->
+    <section class="section-heading">
+        <p class="eyebrow">SMART MONITORING</p>
+        <h2>Smart Bin Overview</h2>
+        <p>Status based on saved bin fill percentages.</p>
+    </section>
+
+    <section class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-icon">🗑️</div>
+            <p>Total Smart Bins</p>
+            <h2 th:text="${totalBins}">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🔴</div>
+            <p>Full Bins</p>
+            <h2 th:text="${fullBins}">0</h2>
+            <small>Above 70% full</small>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🟡</div>
+            <p>Half-Full Bins</p>
+            <h2 th:text="${halfFullBins}">0</h2>
+            <small>31%–70% full</small>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <p>Empty / Low Bins</p>
+            <h2 th:text="${emptyBins}">0</h2>
+            <small>0%–30% full</small>
+        </div>
+
+    </section>
+
+    <!-- Charts -->
+    <section class="charts-grid">
+
+        <div class="chart-panel">
+            <h2>Waste Category Distribution</h2>
+            <p>Quantity collected in each category.</p>
+
+            <div class="chart-container">
+                <canvas id="wastePieChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-panel">
+            <h2>Waste Quantity Comparison</h2>
+            <p>Compare waste quantities by category.</p>
+
+            <div class="chart-container">
+                <canvas id="wasteBarChart"></canvas>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Recent Waste Records -->
+    <section class="records-section">
+
+        <div class="section-heading">
+            <h2>Recent Waste Records</h2>
+            <p>Your latest five registrations.</p>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Category</th>
+                        <th>Quantity (kg)</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr th:each="record : ${recentRecords}">
+                        <td th:text="${record.id}">1</td>
+                        <td>
+                            <strong th:text="${record.category}">
+                                Plastic
+                            </strong>
+                        </td>
+                        <td th:text="${#numbers.formatDecimal(record.quantity, 1, 2)}">
+                            2.50
+                        </td>
+                        <td th:text="${record.location}">
+                            Kalmunai
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(recentRecords)}">
+                        <td colspan="4">No waste records available.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="action-link">
+            <a th:href="@{/records}">View all →</a>
+        </p>
+
+        <p class="action-link">
+            <a th:href="@{/}">+ Register New Waste</a>
+        </p>
+
+    </section>
+
+</main>
+
+<footer>
+    <p>EcoSmart · Building a cleaner, greener future 🌱</p>
+</footer>
+
+<!-- Load Chart.js before creating charts -->
+<script th:src="@{/chart.umd.min.js}"></script>
+
+<script th:inline="javascript">
+    console.log("Chart.js status:", typeof Chart);
+
+    if (typeof Chart === "undefined") {
+        console.error("Chart.js failed to load!");
+
+        document.querySelectorAll(".chart-container").forEach(function (container) {
+            container.innerHTML =
+                '<p style="color:red;">Chart.js could not load. Please check the JavaScript file.</p>';
+        });
+    } else {
+        console.log("Chart.js loaded successfully!");
+
+        const chartLabels = /*[[${chartLabels}]]*/ [];
+        const chartValues = /*[[${chartValues}]]*/ [];
+
+        const labels = Array.isArray(chartLabels) ? chartLabels : [];
+        const values = Array.isArray(chartValues) ? chartValues : [];
+
+        // Waste category pie chart
+        const pieCanvas = document.getElementById("wastePieChart");
+
+        if (pieCanvas) {
+            new Chart(pieCanvas, {
+                type: "pie",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Waste Quantity (kg)",
+                        data: values,
+                        backgroundColor: [
+                            "#2e7d32",
+                            "#66bb6a",
+                            "#ffa726",
+                            "#42a5f5",
+                            "#ab47bc",
+                            "#ef5350"
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: "bottom"
+                        }
+                    }
+                }
+            });
+        }
+
+        // Waste quantity bar chart
+        const barCanvas = document.getElementById("wasteBarChart");
+
+        if (barCanvas) {
+            new Chart(barCanvas, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Waste Quantity (kg)",
+                        data: values,
+                        backgroundColor: "#43a047",
+                        borderColor: "#2e7d32",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: "Quantity (kg)"
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+
+</body>
+</html>

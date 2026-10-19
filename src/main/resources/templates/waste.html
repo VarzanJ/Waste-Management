@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSmart | Edit Waste</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<header class="navbar">
+    <a class="brand" th:href="@{/}">🌿 EcoSmart</a>
+    <nav>
+        <a th:href="@{/}">Register Waste</a>
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a class="active" th:href="@{/records}">Waste Records</a>
+        <a th:href="@{/smart-bins}">Smart Bins</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="page-heading">
+        <p class="eyebrow">WASTE MANAGEMENT</p>
+        <h1>Edit Waste Record</h1>
+        <p class="muted">Update the details of your registered waste.</p>
+    </section>
+
+    <p class="notice"
+       th:if="${message}"
+       th:text="${message}"></p>
+
+    <section class="panel">
+        <form th:action="@{/update/{id}(id=${record.id})}"
+              method="post">
+
+            <label for="category">Waste Category</label>
+            <input id="category"
+                   type="text"
+                   name="category"
+                   th:value="${record.category}"
+                   required>
+
+            <label for="quantity">Quantity (kg)</label>
+            <input id="quantity"
+                   type="number"
+                   name="quantity"
+                   step="0.01"
+                   min="0.01"
+                   th:value="${record.quantity}"
+                   required>
+
+            <label for="location">Collection Location</label>
+            <input id="location"
+                   type="text"
+                   name="location"
+                   th:value="${record.location}"
+                   required>
+
+            <div class="action-buttons">
+                <button class="btn" type="submit">
+                    Update Record
+                </button>
+
+                <a class="btn-delete" th:href="@{/records}">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer>EcoSmart · Building a cleaner, greener future 🌱</footer>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSmart | Success</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<header class="navbar">
+    <a class="brand" th:href="@{/}">🌿 EcoSmart</a>
+    <nav>
+        <a th:href="@{/}">Register Waste</a>
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a th:href="@{/records}">Waste Records</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="panel" style="max-width:650px;margin:50px auto;text-align:center;">
+        <div style="font-size:55px;">✅</div>
+        <h1>Waste Registered Successfully!</h1>
+        <p class="muted">Your waste details have been saved.</p>
+
+        <p><strong>Record ID:</strong> <span th:text="${id}"></span></p>
+        <p><strong>Category:</strong> <span th:text="${category}"></span></p>
+        <p><strong>Quantity:</strong> <span th:text="${quantity}"></span> kg</p>
+        <p><strong>Location:</strong> <span th:text="${location}"></span></p>
+
+        <a class="btn" th:href="@{/dashboard}">View Dashboard</a>
+        <a class="btn" th:href="@{/records}">View Records</a>
+        <p><a class="text-link" th:href="@{/}">Register More Waste</a></p>
+    </section>
+</main>
+
+<footer>EcoSmart · Building a cleaner, greener future 🌱</footer>
+</body>
+</html>

@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSmart | Smart Waste Management</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<header class="navbar">
+    <a class="brand" th:href="@{/}">🌿 EcoSmart</a>
+    <nav>
+        <a class="active" th:href="@{/}">Register Waste</a>
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a th:href="@{/records}">Waste Records</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <p class="eyebrow">SMARTER WASTE · GREENER FUTURE</p>
+        <h1>Make every piece of waste count.</h1>
+        <p>Record waste responsibly and support a cleaner community.</p>
+    </section>
+
+    <section class="panel form-panel">
+        <h2>Register Waste</h2>
+        <p class="muted">Enter the waste information below.</p>
+
+        <p class="error" th:if="${error}" th:text="${error}"></p>
+
+        <form th:action="@{/register-waste}" method="post">
+            <label for="category">Waste Category</label>
+            <select id="category" name="category" required>
+                <option value="">Select a category</option>
+                <option value="Plastic">Plastic</option>
+                <option value="Paper">Paper</option>
+                <option value="Food Waste">Food Waste</option>
+                <option value="Metal">Metal</option>
+                <option value="Glass">Glass</option>
+                <option value="Electronic Waste">Electronic Waste</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label for="quantity">Quantity (kg)</label>
+            <input id="quantity" type="number" name="quantity"
+                   min="0.01" step="0.01" placeholder="e.g. 2.5" required>
+
+            <label for="location">Collection Location</label>
+            <input id="location" type="text" name="location"
+                   maxlength="150" placeholder="e.g. Kalmunai" required>
+
+            <button class="btn" type="submit">Register Waste →</button>
+        </form>
+    </section>
+
+    <section class="quick-links">
+        <a class="quick-card" th:href="@{/dashboard}">
+            <span>📊</span>
+            <div><strong>Dashboard</strong><p>View waste statistics</p></div>
+            <span>→</span>
+        </a>
+        <a class="quick-card" th:href="@{/records}">
+            <span>♻️</span>
+            <div><strong>Waste Records</strong><p>View and manage saved records</p></div>
+            <span>→</span>
+        </a>
+    </section>
+</main>
+
+<footer>EcoSmart · Building a cleaner, greener future 🌱</footer>
+</body>
+</html>
